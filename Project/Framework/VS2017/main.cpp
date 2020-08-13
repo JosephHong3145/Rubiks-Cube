@@ -34,7 +34,6 @@ using namespace std;
 
 
 bool initContext();
-float RNGpos();
 GLuint loadTexture(const char* filename);
 
 float RNGpos();
@@ -104,25 +103,7 @@ int main()
     {
         cout << "ERROR::FREETYPE: Could not init FreeType Library" << endl;
         return -1;
-    }
-    
-    /*string font_l, font_t;
-    ifstream font_name("C:/Windows/Fonts/ariblk.ttf");
-
-    //fstream to const char
-    while (getline(font_name, font_l)) {
-        font_t += font_l + "\n";
-    }
-
-    const char* font = font_t.c_str();
-
-    // find path to font
-    if (!font_name.is_open())
-    {
-        cout << "ERROR::FREETYPE: Failed to load font_name" << endl;
-        return -1;
-    }*/
-    
+    }  
 
     // find path to font
     string font_name = "C:/Windows/Fonts/ariblk.ttf";
@@ -527,9 +508,6 @@ int main()
         // Bind geometry
 
         RenderText(TextShader, "Timer:", 25.0f, 25.0f, 1.0f, vec3(0.5, 0.8f, 0.2f));
-
-
-        
         RenderText(TextShader, timer, 200.0f, 25.0f, 1.0f, vec3(0.5, 0.8f, 0.2f));
         
 
