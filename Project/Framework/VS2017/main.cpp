@@ -1,11 +1,13 @@
 
 #include <iostream>
 #include <list>
+#include <map>
+#include <fstream>
 
 #define GLEW_STATIC 1
 #include <GL/glew.h>
-
 #include <GLFW/glfw3.h>
+
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -22,18 +24,24 @@
 #include "shaderloader.h"
 #include "Rubiks_Cube.h"
 
+#include <ft2build.h>
+#include FT_FREETYPE_H  
+
 using namespace glm;
 using namespace std;
+
+
 
 
 bool initContext();
 float RNGpos();
 GLuint loadTexture(const char* filename);
 
-bool initContext();
 float RNGpos();
 vec3 crossProduct(vec3, vec3, vec3);
 vector<vec3> generateSphere(float, int);
+
+void RenderText(Shader& shader, string text, float x, float y, float scale, vec3 color);
 
 GLFWwindow* window = NULL;
 
@@ -54,6 +62,16 @@ vec3 defaultSize = vec3(1.0f, 6.5f, 1.0f);
 vec3 lightPos = vec3(0.0f, 1.0f, 30.0f);
 vec3 lightFocus(0, 0, -1); // the point in 3D space the light "looks" at
 
+struct Character {
+    unsigned int TextureID; //Id handle of the glyph texture
+    ivec2 Size;             //Size of glyph
+    ivec2 Bearing;          //Offset from baseline to left/top of glyph
+    unsigned int Advance;   //Horizontal offset to advance to next glyph
+};
+
+map<GLchar, Character> Characters;
+GLuint charVAO, charVBO;
+
 int main()
 {
     if (!initContext()) return -1;
@@ -65,6 +83,7 @@ int main()
     Shader AffectedByLightingShader("AffectedByLighting.vert", "AffectedByLighting.frag");
     Shader NotAffectedByLightingShader("NotAffectedByLighting.vert", "NotAffectedByLighting.frag");
     Shader ShadowShader("shadowVertex.glsl", "shadowFragment.glsl");
+    Shader TextShader("text.vert", "text.frag");
 
     //Initiating camera
     vec3 cameraPosition(0.6f, 1.0f, 10.0f);
@@ -76,6 +95,111 @@ int main()
     float cameraSpeed = 0.0f;
 
     // Set projection matrix for shader, this won't change
+    
+
+    //Freetype
+    FT_Library ft;
+    //All functions return a value different than 0 whenever an error occured
+    if (FT_Init_FreeType(&ft))
+    {
+        cout << "ERROR::FREETYPE: Could not init FreeType Library" << endl;
+        return -1;
+    }
+    
+    /*string font_l, font_t;
+    ifstream font_name("C:/Windows/Fonts/ariblk.ttf");
+
+    //fstream to const char
+    while (getline(font_name, font_l)) {
+        font_t += font_l + "\n";
+    }
+
+    const char* font = font_t.c_str();
+
+    // find path to font
+    if (!font_name.is_open())
+    {
+        cout << "ERROR::FREETYPE: Failed to load font_name" << endl;
+        return -1;
+    }*/
+    
+
+    // find path to font
+    string font_name = "C:/Windows/Fonts/ariblk.ttf";
+    if (font_name.empty())
+    {
+        std::cout << "ERROR::FREETYPE: Failed to load font_name" << std::endl;
+        return -1;
+    }
+
+
+    // load font as face
+    FT_Face face;
+    if (FT_New_Face(ft, font_name.c_str(), 0, &face)) {
+        cout << "ERROR::FREETYPE: Failed to load font" << endl;
+        return -1;
+    }
+    else {
+        // set size to load glyphs as
+        FT_Set_Pixel_Sizes(face, 0, 48);
+
+        // disable byte-alignment restriction
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+        // load first 128 characters of ASCII set
+        for (unsigned char c = 0; c < 128; c++)
+        {
+            // Load character glyph 
+            if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+            {
+                cout << "ERROR::FREETYTPE: Failed to load Glyph" << endl;
+                continue;
+            }
+            // generate texture
+            unsigned int texture;
+            glGenTextures(1, &texture);
+            glBindTexture(GL_TEXTURE_2D, texture);
+            glTexImage2D(
+                GL_TEXTURE_2D,
+                0,
+                GL_RED,
+                face->glyph->bitmap.width,
+                face->glyph->bitmap.rows,
+                0,
+                GL_RED,
+                GL_UNSIGNED_BYTE,
+                face->glyph->bitmap.buffer
+            );
+            // set texture options
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            // now store character for later use
+            Character character = {
+                texture,
+                ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+                ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+                face->glyph->advance.x
+            };
+            Characters.insert(pair<char, Character>(c, character));
+        }
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+    // destroy FreeType once we're finished
+    FT_Done_Face(face);
+    FT_Done_FreeType(ft);
+
+    //configure VAO/VBO for texture quads
+    glGenVertexArrays(1, &charVAO);
+    glGenBuffers(1, &charVBO);
+    glBindVertexArray(charVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, charVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
     // Set initial view matrix
     mat4 viewMatrix = lookAt(cameraPosition, cameraPosition + cameraLookAt, cameraUp);
@@ -286,6 +410,8 @@ int main()
     //enable OpenGL components
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
     int width, height;
@@ -327,6 +453,10 @@ int main()
 
         NotAffectedByLightingShader.use();
         NotAffectedByLightingShader.setMat4("projectionMatrix", projectionMatrix);
+        
+        mat4 projection = ortho(0.0f, static_cast<float>(1024), 0.0f, static_cast<float>(768));
+        TextShader.use();
+        TextShader.setMat4("projection", projection);
 
         // Frame time calculation
         float dt = glfwGetTime() - lastFrameTime;
@@ -335,6 +465,10 @@ int main()
         // Each frame, reset buffers
         glClear(GL_COLOR_BUFFER_BIT);
         glClear(GL_DEPTH_BUFFER_BIT);
+
+        //Rendering Text
+       
+        
 
         //modules for controlling model and world behaviour =================================================================================================================
 
@@ -378,6 +512,11 @@ int main()
         // Clear depth data on the framebuffer
         glClear(GL_DEPTH_BUFFER_BIT);
         // Bind geometry
+
+        RenderText(TextShader, "Timer is gonna be here", 25.0f, 25.0f, 1.0f, vec3(0.5, 0.8f, 0.2f));
+
+        
+
         glBindVertexArray(cubeVAO);
 
         ShadowShader.use();
@@ -417,6 +556,11 @@ int main()
          glActiveTexture(GL_TEXTURE0);
          // Activate any texture unit you use for your models
          // Bind geometry
+
+         RenderText(TextShader, "Timer is gonna be here", 25.0f, 25.0f, 1.0f, vec3(0.5, 0.8f, 0.2f));
+
+         
+
         glBindVertexArray(cubeVAO);
 
         AffectedByLightingShader.use();
@@ -830,3 +974,320 @@ vector<vec3> generateSphere(float radius, int polyCount) {
     }
     return result;
 }
+
+void RenderText(Shader& s, string text, float x, float y, float scale, vec3 color)
+{
+    // activate corresponding render state	
+    s.use();
+    glUniform3f(glGetUniformLocation(s.ID, "textColor"), color.x, color.y, color.z);
+    glActiveTexture(GL_TEXTURE0);
+    glBindVertexArray(charVAO);
+
+    // iterate through all characters
+    string::const_iterator c;
+    for (c = text.begin(); c != text.end(); c++)
+    {
+        Character ch = Characters[*c];
+
+        float xpos = x + ch.Bearing.x * scale;
+        float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+
+        float w = ch.Size.x * scale;
+        float h = ch.Size.y * scale;
+        // update VBO for each character
+        float vertices[6][4] = {
+            { xpos,     ypos + h,   0.0f, 0.0f },
+            { xpos,     ypos,       0.0f, 1.0f },
+            { xpos + w, ypos,       1.0f, 1.0f },
+
+            { xpos,     ypos + h,   0.0f, 0.0f },
+            { xpos + w, ypos,       1.0f, 1.0f },
+            { xpos + w, ypos + h,   1.0f, 0.0f }
+        };
+        // render glyph texture over quad
+        glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+        // update content of VBO memory
+        glBindBuffer(GL_ARRAY_BUFFER, charVBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        // render quad
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+        x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+    }
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+
+
+//#include <iostream>
+//#include <map>
+//#include <string>
+//
+//#define GLEW_STATIC 1
+//#include <GL/glew.h>
+//
+//
+//#include <GLFW/glfw3.h>
+//
+//#include <glm/glm.hpp>
+//#include <glm/gtc/matrix_transform.hpp>
+//#include <glm/gtc/type_ptr.hpp>
+//
+//#include "shader_compile.h"
+//
+//#include <ft2build.h>
+//#include FT_FREETYPE_H
+//
+//void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+//void processInput(GLFWwindow* window);
+//void RenderText(Shader& shader, std::string text, float x, float y, float scale, glm::vec3 color);
+//
+//// settings
+//const unsigned int SCR_WIDTH = 800;
+//const unsigned int SCR_HEIGHT = 600;
+//
+///// Holds all state information relevant to a character as loaded using FreeType
+//struct Character {
+//    unsigned int TextureID; // ID handle of the glyph texture
+//    glm::ivec2   Size;      // Size of glyph
+//    glm::ivec2   Bearing;   // Offset from baseline to left/top of glyph
+//    unsigned int Advance;   // Horizontal offset to advance to next glyph
+//};
+//
+//std::map<GLchar, Character> Characters;
+//unsigned int VAO, VBO;
+//
+//int main()
+//{
+//    // glfw: initialize and configure
+//    // ------------------------------
+//    glfwInit();
+//    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+//    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+//    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+//
+//#ifdef __APPLE__
+//    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+//#endif
+//
+//    // glfw window creation
+//    // --------------------
+//    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+//    if (window == NULL)
+//    {
+//        std::cout << "Failed to create GLFW window" << std::endl;
+//        glfwTerminate();
+//        return -1;
+//    }
+//    glfwMakeContextCurrent(window);
+//    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+//
+//    // glad: load all OpenGL function pointers
+//    // ---------------------------------------
+//    //if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+//    //{
+//    //    std::cout << "Failed to initialize GLAD" << std::endl;
+//   //     return -1;
+//   // }
+//
+//    // Initialize GLEW
+//    glewExperimental = true; // Needed for core profile
+//    if (glewInit() != GLEW_OK) {
+//        std::cerr << "Failed to create GLEW" << std::endl;
+//        glfwTerminate();
+//        return false;
+//    }
+//
+//    // OpenGL state
+//    // ------------
+//    glEnable(GL_CULL_FACE);
+//    glEnable(GL_BLEND);
+//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//
+//    // compile and setup the shader
+//    // ----------------------------
+//    Shader TextShader("text.vert", "text.frag");
+//    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(SCR_WIDTH), 0.0f, static_cast<float>(SCR_HEIGHT));
+//    TextShader.use();
+//    glUniformMatrix4fv(glGetUniformLocation(TextShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+//
+//    // FreeType
+//    // --------
+//    FT_Library ft;
+//    // All functions return a value different than 0 whenever an error occurred
+//    if (FT_Init_FreeType(&ft))
+//    {
+//        std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+//        return -1;
+//    }
+//
+//     //find path to font
+//     string font_name = "C:/Windows/Fonts/ariblk.ttf";
+//     if (font_name.empty())
+//     {
+//         std::cout << "ERROR::FREETYPE: Failed to load font_name" << std::endl;
+//         return -1;
+//     }
+//
+//    // load font as face
+//    FT_Face face;
+//    if (FT_New_Face(ft, font_name.c_str(), 0, &face)) {
+//        std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+//        return -1;
+//    }
+//    else {
+//        // set size to load glyphs as
+//        FT_Set_Pixel_Sizes(face, 0, 48);
+//
+//        // disable byte-alignment restriction
+//        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+//
+//        // load first 128 characters of ASCII set
+//        for (unsigned char c = 0; c < 128; c++)
+//        {
+//            // Load character glyph 
+//            if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+//            {
+//                std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+//                continue;
+//            }
+//            // generate texture
+//            unsigned int texture;
+//            glGenTextures(1, &texture);
+//            glBindTexture(GL_TEXTURE_2D, texture);
+//            glTexImage2D(
+//                GL_TEXTURE_2D,
+//                0,
+//                GL_RED,
+//                face->glyph->bitmap.width,
+//                face->glyph->bitmap.rows,
+//                0,
+//                GL_RED,
+//                GL_UNSIGNED_BYTE,
+//                face->glyph->bitmap.buffer
+//            );
+//            // set texture options
+//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//            // now store character for later use
+//            Character character = {
+//                texture,
+//                glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+//                glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+//                face->glyph->advance.x
+//            };
+//            Characters.insert(std::pair<char, Character>(c, character));
+//        }
+//        glBindTexture(GL_TEXTURE_2D, 0);
+//    }
+//    // destroy FreeType once we're finished
+//    FT_Done_Face(face);
+//    FT_Done_FreeType(ft);
+//
+//
+//    // configure VAO/VBO for texture quads
+//    // -----------------------------------
+//    glGenVertexArrays(1, &VAO);
+//    glGenBuffers(1, &VBO);
+//    glBindVertexArray(VAO);
+//    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+//    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+//    glEnableVertexAttribArray(0);
+//    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+//    glBindBuffer(GL_ARRAY_BUFFER, 0);
+//    glBindVertexArray(0);
+//
+//    // render loop
+//    // -----------
+//    while (!glfwWindowShouldClose(window))
+//    {
+//        // input
+//        // -----
+//        processInput(window);
+//
+//        // render
+//        // ------
+//        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+//        glClear(GL_COLOR_BUFFER_BIT);
+//
+//        RenderText(TextShader, "This is sample text", 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
+//        RenderText(TextShader, "(C) LearnOpenGL.com", 540.0f, 570.0f, 0.5f, glm::vec3(0.3, 0.7f, 0.9f));
+//
+//        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+//        // -------------------------------------------------------------------------------
+//        glfwSwapBuffers(window);
+//        glfwPollEvents();
+//    }
+//
+//    glfwTerminate();
+//    return 0;
+//}
+//
+//// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
+//// ---------------------------------------------------------------------------------------------------------
+//void processInput(GLFWwindow* window)
+//{
+//    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+//        glfwSetWindowShouldClose(window, true);
+//}
+//
+//// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+//// ---------------------------------------------------------------------------------------------
+//void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+//{
+//    // make sure the viewport matches the new window dimensions; note that width and 
+//    // height will be significantly larger than specified on retina displays.
+//    glViewport(0, 0, width, height);
+//}
+//
+//
+//// render line of text
+//// -------------------
+//void RenderText(Shader& shader, std::string text, float x, float y, float scale, glm::vec3 color)
+//{
+//    // activate corresponding render state	
+//    shader.use();
+//    glUniform3f(glGetUniformLocation(shader.ID, "textColor"), color.x, color.y, color.z);
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindVertexArray(VAO);
+//
+//    // iterate through all characters
+//    std::string::const_iterator c;
+//    for (c = text.begin(); c != text.end(); c++)
+//    {
+//        Character ch = Characters[*c];
+//
+//        float xpos = x + ch.Bearing.x * scale;
+//        float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+//
+//        float w = ch.Size.x * scale;
+//        float h = ch.Size.y * scale;
+//        // update VBO for each character
+//        float vertices[6][4] = {
+//            { xpos,     ypos + h,   0.0f, 0.0f },
+//            { xpos,     ypos,       0.0f, 1.0f },
+//            { xpos + w, ypos,       1.0f, 1.0f },
+//
+//            { xpos,     ypos + h,   0.0f, 0.0f },
+//            { xpos + w, ypos,       1.0f, 1.0f },
+//            { xpos + w, ypos + h,   1.0f, 0.0f }
+//        };
+//        // render glyph texture over quad
+//        glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+//        // update content of VBO memory
+//        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+//        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // be sure to use glBufferSubData and not glBufferData
+//
+//        glBindBuffer(GL_ARRAY_BUFFER, 0);
+//        // render quad
+//        glDrawArrays(GL_TRIANGLES, 0, 6);
+//        // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+//        x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+//    }
+//    glBindVertexArray(0);
+//    glBindTexture(GL_TEXTURE_2D, 0);
+//}

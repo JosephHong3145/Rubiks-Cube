@@ -39,5 +39,7 @@
     <None Include="NotAffectedByLighting.frag" />
     <None Include="NotAffectedByLighting.vert" />
     <None Include="shadowVertex.glsl" />
+    <None Include="text.frag" />
+    <None Include="text.vert" />
   </ItemGroup>
 </Project>
