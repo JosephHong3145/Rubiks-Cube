@@ -59,13 +59,22 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+<<<<<<< HEAD
       <AdditionalIncludeDirectories>../ThirdParty/glad/include;../ThirdParty/freetype-windows-binaries/include;../ThirdParty/glew-2.1.0/include;../ThirdParty/FreeImage-3170/Source;../ThirdParty/glfw-3.3/include;../ThirdParty/glm</AdditionalIncludeDirectories>
+=======
+      <AdditionalIncludeDirectories>$(SolutionDir)..\ThirdParty\irrKlang\irrKlang-1.6.0\include;../ThirdParty/glew-2.1.0/include;../ThirdParty/FreeImage-3170/Source;../ThirdParty/glfw-3.3/include;../ThirdParty/glm</AdditionalIncludeDirectories>
+>>>>>>> master
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+<<<<<<< HEAD
       <AdditionalLibraryDirectories>../ThirdParty/freetype-windows-binaries/win32;../ThirdParty/FreeImage-3170/lib/win32;../ThirdParty/glew-2.1.0/lib/win32;../ThirdParty/glfw-3.3/lib/win32/lib-vc2017</AdditionalLibraryDirectories>
       <AdditionalDependencies>freetype.lib;FreeImage.lib;opengl32.lib;glew32s.lib;glfw3.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+=======
+      <AdditionalLibraryDirectories>$(SolutionDir)..\ThirdParty\irrKlang\irrKlang-1.6.0\lib\Win32-visualStudio;C:\Users\Badreddine Loulidi\Desktop\Coding projects\Computer Graphics\Rubiks-Cube\Project\Framework\ThirdParty\FreeImage-3170\lib\win32;../ThirdParty/glew-2.1.0/lib/win32;../ThirdParty/glfw-3.3/lib/win32/lib-vc2017</AdditionalLibraryDirectories>
+      <AdditionalDependencies>irrKlang.lib;FreeImage.lib;opengl32.lib;glew32s.lib;glfw3.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+>>>>>>> master
     </Link>
     <BuildLog>
       <Path>
@@ -81,15 +90,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../ThirdParty/FreeImage-3170/Source;../ThirdParty/glew-2.1.0/include;../ThirdParty/glfw-3.3/include;../ThirdParty/glm</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\ThirdParty\irrKlang\irrKlang-1.6.0\include;../ThirdParty/FreeImage-3170/Source;../ThirdParty/glew-2.1.0/include;../ThirdParty/glfw-3.3/include;../ThirdParty/glm</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>../ThirdParty/FreeImage-3170/lib/win32;../ThirdParty/glew-2.1.0/lib/Win32;../ThirdParty/glfw-3.3/lib/win32/lib-vc2017</AdditionalLibraryDirectories>
-      <AdditionalDependencies>FreeImage.lib;opengl32.lib;glew32s.lib;glfw3.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\ThirdParty\irrKlang\irrKlang-1.6.0\lib\Win32-visualStudio;C:\Users\Badreddine Loulidi\Desktop\Coding projects\Computer Graphics\Rubiks-Cube\Project\Framework\ThirdParty\FreeImage-3170\lib\win32;../ThirdParty/glew-2.1.0/lib/Win32;../ThirdParty/glfw-3.3/lib/win32/lib-vc2017</AdditionalLibraryDirectories>
+      <AdditionalDependencies>irrKlang.lib;FreeImage.lib;opengl32.lib;glew32s.lib;glfw3.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:LIBCMT %(AdditionalOptions)</AdditionalOptions>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>

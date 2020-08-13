@@ -23,12 +23,16 @@
 #include "Sphere.h"
 #include "shaderloader.h"
 #include "Rubiks_Cube.h"
+#include <irrKlang.h>
+#pragma comment(lib, "irrKlang.lib") // link with irrKlang.dll
 
 #include <ft2build.h>
 #include FT_FREETYPE_H  
 
 using namespace glm;
 using namespace std;
+using namespace irrklang;
+
 
 
 
@@ -61,6 +65,7 @@ vec3 defaultSize = vec3(1.0f, 6.5f, 1.0f);
 vec3 lightPos = vec3(0.0f, 1.0f, 30.0f);
 vec3 lightFocus(0, 0, -1); // the point in 3D space the light "looks" at
 
+<<<<<<< HEAD
 struct Character {
     unsigned int TextureID; //Id handle of the glyph texture
     ivec2 Size;             //Size of glyph
@@ -70,10 +75,22 @@ struct Character {
 
 map<GLchar, Character> Characters;
 GLuint charVAO, charVBO;
+=======
+vec3 selectCord = vec3(0.0f); //coordinate of the red "select" cube 
+
+vec3 normalCubePosition = vec3(0.0f); //position of the normal rubik's cube 
+
+>>>>>>> master
 
 int main()
 {
     if (!initContext()) return -1;
+
+    // start the sound engine with default parameters
+    ISoundEngine* engine = createIrrKlangDevice();
+    
+    // play some sound stream, looped
+    engine->play2D("gameSound.mp3", true);
 
     // Black background
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -360,6 +377,7 @@ int main()
     GLuint blueTextureID = loadTexture("Textures/blue.bmp");
     GLuint orangeTextureID = loadTexture("Textures/orange.bmp");
     GLuint skyboxTextureID = loadTexture("Textures/skybox.jpg");
+    GLuint selectCubeID = loadTexture("Textures/select.png");
 #else
     GLuint redTextureID = loadTexture("../Assets/Textures/red.bmp");
     GLuint yellowTextureID = loadTexture("../Assets/Textures/yellow.bmp");
@@ -368,6 +386,7 @@ int main()
     GLuint blueTextureID = loadTexture("../Assets/Textures/blue.bmp");
     GLuint orangeTextureID = loadTexture("../Assets/Textures/orange.bmp");
     GLuint skyboxTextureID = loadTexture("../Assets/Textures/skybox.jpg");
+    GLuint selectCubeID = loadTexture("../Assets/Textures/select.png");
 #endif
 
     //setting up texture packs
@@ -398,6 +417,7 @@ int main()
     int width, height;
     float scaleFactor = 0.0f;
 
+<<<<<<< HEAD
     int choose = 1; //choosing the model
 
     //choosing specific cameras
@@ -418,11 +438,24 @@ int main()
     bool TimeUpdate = 1;
     double seconds = 0.0;
 
+=======
+>>>>>>> master
     ShadowShader.use();
     //creating all cube objects
-    Rubiks_Cube normalCube = Rubiks_Cube(vec3(0.0f), texturePackNormal);
+    Rubiks_Cube normalCube = Rubiks_Cube(normalCubePosition, texturePackNormal);
     normalCube.generateCube(ShadowShader);
-    
+
+    //setting up for button debouncing 
+    int oldStateQ = GLFW_RELEASE;
+    int oldStateE = GLFW_RELEASE;
+
+    int oldStateUp = GLFW_RELEASE;
+    int oldStateDown = GLFW_RELEASE;
+    int oldStateLeft = GLFW_RELEASE;
+    int oldStateRight = GLFW_RELEASE;
+    int oldStateU = GLFW_RELEASE;
+    int oldStateJ = GLFW_RELEASE;
+
 
     // Entering Game Loop
     while (!glfwWindowShouldClose(window))
@@ -452,6 +485,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
         glClear(GL_DEPTH_BUFFER_BIT);
 
+<<<<<<< HEAD
         //Rendering Text
         
         if (TimeUpdate == true) {
@@ -463,6 +497,99 @@ int main()
         }
 
         //modules for controlling model and world behaviour =================================================================================================================
+=======
+        //modules for controlling model and world behaviour =================================================================================================================
+
+        //Q = rotate left
+        //E = rotate right
+
+        int newStateQ = glfwGetKey(window, GLFW_KEY_Q);
+        if (newStateQ == GLFW_RELEASE && oldStateQ == GLFW_PRESS) {
+            normalCube.rotate_y0("left");
+        }
+        oldStateQ = newStateQ;
+
+        int newStateE = glfwGetKey(window, GLFW_KEY_E);
+        if (newStateE == GLFW_RELEASE && oldStateE == GLFW_PRESS) {
+            normalCube.rotate_y0("right");
+        }
+        oldStateE = newStateE;
+       
+        //moving selection block: up/down/left/right/u/j
+
+        int newStateUp = glfwGetKey(window, GLFW_KEY_UP);
+        if (newStateUp == GLFW_RELEASE && oldStateUp == GLFW_PRESS) {
+            if (selectCord.z != 0) {
+                selectCord.z -= 1;
+
+                if (selectCord == vec3(1.0f)) {
+                    selectCord.z -= 1;
+                }
+            }
+            
+        }
+        oldStateUp = newStateUp;
+
+        int newStateDown = glfwGetKey(window, GLFW_KEY_DOWN);
+        if (newStateDown == GLFW_RELEASE && oldStateDown == GLFW_PRESS) {
+            if (selectCord.z != 2) {
+                selectCord.z += 1;
+
+                if (selectCord == vec3(1.0f)) {
+                    selectCord.z += 1;
+                }
+            }
+        }
+        oldStateDown = newStateDown;
+
+        int newStateLeft = glfwGetKey(window, GLFW_KEY_LEFT);
+        if (newStateLeft == GLFW_RELEASE && oldStateLeft == GLFW_PRESS) {
+            if (selectCord.x != 0) {
+                selectCord.x -= 1;
+
+                if (selectCord == vec3(1.0f)) {
+                    selectCord.x -= 1;
+                }
+            }
+        }
+        oldStateLeft = newStateLeft;
+
+        int newStateRight = glfwGetKey(window, GLFW_KEY_RIGHT);
+        if (newStateRight == GLFW_RELEASE && oldStateRight == GLFW_PRESS) {
+            if (selectCord.x != 2) {
+                selectCord.x += 1;
+
+                if (selectCord == vec3(1.0f)) {
+                    selectCord.x += 1;
+                }
+            }
+        }
+        oldStateRight = newStateRight;
+
+        int newStateU = glfwGetKey(window, GLFW_KEY_U);
+        if (newStateU == GLFW_RELEASE && oldStateU == GLFW_PRESS) {
+            if (selectCord.y != 2) {
+                selectCord.y += 1;
+
+                if (selectCord == vec3(1.0f)) {
+                    selectCord.y += 1;
+                }
+            }
+        }
+        oldStateU = newStateU;
+
+        int newStateJ = glfwGetKey(window, GLFW_KEY_J);
+        if (newStateJ == GLFW_RELEASE && oldStateJ == GLFW_PRESS) {
+            if (selectCord.y != 0) {
+                selectCord.y -= 1;
+
+                if (selectCord == vec3(1.0f)) {
+                    selectCord.y -= 1;
+                }
+            }
+        }
+        oldStateJ = newStateJ;
+>>>>>>> master
 
         if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) // pause timer
         {
@@ -483,7 +610,6 @@ int main()
         mat4 lightViewMatrix = lookAt(lightPos, lightFocus, vec3(0, 1, 0));
 
         AffectedByLightingShader.use();
-
 
         AffectedByLightingShader.setMat4("light_proj_view_matrix", lightProjMatrix * lightViewMatrix);
         AffectedByLightingShader.setFloat("light_near_plane", lightNearPlane);
@@ -518,8 +644,14 @@ int main()
         normalCube.setShader(ShadowShader);
         normalCube.drawModel();
 
+        //drawing selection cube
+        glBindTexture(GL_TEXTURE_2D, selectCubeID);
+
+        Cube selectCube = Cube(selectCord - vec3(1.0f) + normalCubePosition, ShadowShader);
+        selectCube.setDefaultSize(vec3(1.01f));
+        selectCube.drawModel();
+
          //drawing skybox
-        glBindVertexArray(cubeVAO);
         glBindTexture(GL_TEXTURE_2D, skyboxTextureID);
         mat4 skybox = translate(mat4(1.0f), cameraPosition) * scale(mat4(1.0f), vec3(-500.0f));
         ShadowShader.setMat4("worldMatrix", skybox);
@@ -560,6 +692,11 @@ int main()
         AffectedByLightingShader.use();
         normalCube.setShader(AffectedByLightingShader);
         normalCube.drawModel();
+
+        //drawing selection cube
+        glBindTexture(GL_TEXTURE_2D, selectCubeID);
+        selectCube.setCurrentShader(AffectedByLightingShader);
+        selectCube.drawModel();
 
         //drawing skybox
         glBindVertexArray(cubeVAO);
@@ -679,119 +816,6 @@ int main()
             cameraPosition.y -= cameraSpeed * dt;
         }
 
-        //SWITCHING BETWEEN DIFFERENT CAMERAS=============================================================================
-
-        if (chooseCamera == 0) { //freecam
-            //during freecam, program will constant record the camera angle and position in storage variables
-            storedCameraPosition = cameraPosition;
-            storedCameraAngle = vec2(cameraHorizontalAngle, cameraVerticalAngle);
-            lightPos = vec3(0, 1, -30);
-            lightFocus = vec3(0, 0, -1);
-        }
-
-        if (chooseCamera == 1) { //cam1
-            //lock camera position and angle into pre-defined values. freecam values are stored 
-            cameraPosition = vec3(0.6f, 1.0f, 10.0f);
-            cameraHorizontalAngle = 90.0;
-            cameraVerticalAngle = 0.0;
-            lightPos = vec3(0, 1, -30);
-            lightFocus = vec3(0, 0, -1);
-        }
-
-        if (chooseCamera == 2) { //cam2
-            cameraPosition = vec3(0.6f, 1.0f, -10.0f);
-            cameraHorizontalAngle = -90.0;
-            cameraVerticalAngle = 0.0;
-            lightPos = vec3(0, 1, -30);
-            lightFocus = vec3(0, 0, -1);
-        }
-
-        if (chooseCamera == 3) { //bullet time camera 
-            cameraPosition = vec3(10 * cos(bulletTimeAngle), 1.0f, 10 * sin(bulletTimeAngle));
-            cameraHorizontalAngle = degrees(M_PI - bulletTimeAngle);
-            cameraVerticalAngle = -degrees(atan(1 / 10));
-            lightPos = cameraPosition;
-            lightFocus = vec3(0, 0, 0);
-        }
-
-        if (chooseCamera == 4) { //cam4, similar to cam1 and cam2
-            cameraPosition = vec3(0.0f, 1.5f, 32.0f);
-            cameraHorizontalAngle = 90.0;
-            cameraVerticalAngle = -degrees(atan(cameraPosition.y / cameraPosition.z));
-            lightPos = vec3(0, 1, -30);
-            lightFocus = vec3(0, 0, -1);
-        }
-
-        //CAMERA CONTROL SUBROUTINE =======================================================================
-        int cam1NewState = glfwGetKey(window, GLFW_KEY_F1); //toggle between cam1 and freecam
-        if (cam1NewState == GLFW_RELEASE && cam1OldState == GLFW_PRESS) {
-            if (chooseCamera != 1) {//enable cam1
-                chooseCamera = 1;
-            }
-            else {//disable cam1, go back to freecam
-                //pop the camera position and angle back from the storage
-                cameraPosition = storedCameraPosition;
-                cameraHorizontalAngle = storedCameraAngle.x;
-                cameraVerticalAngle = storedCameraAngle.y;
-
-                chooseCamera = 0;
-            }
-        }
-        cam1OldState = cam1NewState;
-
-        int cam2NewState = glfwGetKey(window, GLFW_KEY_F2); //toggle between cam2 and freecam
-        if (cam2NewState == GLFW_RELEASE && cam2OldState == GLFW_PRESS) {
-            if (chooseCamera != 2) {//enable cam2
-                chooseCamera = 2;
-            }
-            else {//disable cam2, go back to freecam
-                //pop the camera position and angle back from the storage
-                cameraPosition = storedCameraPosition;
-                cameraHorizontalAngle = storedCameraAngle.x;
-                cameraVerticalAngle = storedCameraAngle.y;
-
-                chooseCamera = 0;
-            }
-        }
-        cam2OldState = cam2NewState;
-
-        int cam4NewState = glfwGetKey(window, GLFW_KEY_F6); //toggle between cam4 and freecam
-        if (cam4NewState == GLFW_RELEASE && cam4OldState == GLFW_PRESS) {
-            if (chooseCamera != 4) {//enable cam4
-                chooseCamera = 4;
-            }
-            else {//disable cam4, go back to freecam
-                //pop the camera position and angle back from the storage
-                cameraPosition = storedCameraPosition;
-                cameraHorizontalAngle = storedCameraAngle.x;
-                cameraVerticalAngle = storedCameraAngle.y;
-
-                chooseCamera = 0;
-            }
-        }
-        cam4OldState = cam4NewState;
-
-        if (glfwGetKey(window, GLFW_KEY_F3) == GLFW_PRESS) {
-            bulletTimeAngle += 0.01f;
-            chooseCamera = 3;
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS) {
-            bulletTimeAngle -= 0.01f;
-            chooseCamera = 3;
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_HOME) == GLFW_PRESS) //reset to freecam
-        {
-            //restoring from previously stored camera position and angle 
-
-            cameraPosition = storedCameraPosition;
-            cameraHorizontalAngle = storedCameraAngle.x;
-            cameraVerticalAngle = storedCameraAngle.y;
-
-            chooseCamera = 0;
-        }
-
         viewMatrix = lookAt(cameraPosition, cameraPosition + cameraLookAt, cameraUp);
 
         AffectedByLightingShader.use();
@@ -894,6 +918,7 @@ vec3 crossProduct(vec3 point1, vec3 point2, vec3 point3) {
     vec3 vector2 = point3 - point1;
     return cross(vector1, vector2);
 }
+
 
 vector<vec3> generateSphere(float radius, int polyCount) {
     float sectorCount = polyCount;

@@ -1,4 +1,5 @@
 #include "Rubiks_Cube.h"
+#include <dos.h>
 
 Rubiks_Cube::Rubiks_Cube() {
 
@@ -81,6 +82,29 @@ void Rubiks_Cube::drawModel() {
     for (int x = 0; x < 3; x++) {
         for (int y = 0; y < 3; y++) {
             cubeArray[x][y][0].drawBackFace();
+        }
+    }
+}
+
+void Rubiks_Cube::rotate_y0(string direction) {
+
+    for (int i = 0; i < 90; i++) {
+        if (direction == "left") {
+            rotateFactory1--;
+            //insert delay here
+        }
+
+        else if (direction == "right") {
+            rotateFactory1++;
+            //insert delay here
+        }
+
+        mat4 rotateMatrix = rotate(mat4(1.0f), radians(rotateFactory1), vec3(0.0f, 1.0f, 0.0f));
+
+        for (int x = 0; x < 3; x++) {
+            for (int z = 0; z < 3; z++) {
+                cubeArray[x][0][z].setCustomRotation(rotateMatrix);
+            }
         }
     }
 }
