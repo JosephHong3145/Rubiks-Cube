@@ -28,9 +28,13 @@ public:
 
 	void rotate_z(string direction, int z);
 
+	void setPosition(vec3 pos);
+	vec3 getPosition();
 
 	void resetPosition();
-	void randomizePosition();
+	void randomizePosition(int iteration);
+
+	bool winCondition();
 
 	void debug();
 };

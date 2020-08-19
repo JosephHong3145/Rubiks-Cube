@@ -12,9 +12,8 @@ Cube::Cube(vec3 basePos, Shader S) {
 
 //update the cube 
 void Cube::update() {
-	basePosition = positionTag;
 	mat4 scaleMatrix = scale(mat4(1.0f), size * currentScaleFactor);
-	mat4 translateMatrix = translate(mat4(1.0f), (basePosition)*currentScaleFactor);
+	mat4 translateMatrix = translate(mat4(1.0f), (positionTag + basePosition)*currentScaleFactor);
 
 	modelMatrix = translateMatrix * baseRotationMatrix * scaleMatrix;
 }

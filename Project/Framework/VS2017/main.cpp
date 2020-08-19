@@ -33,10 +33,6 @@ using namespace glm;
 using namespace std;
 using namespace irrklang;
 
-
-
-
-
 bool initContext();
 GLuint loadTexture(const char* filename);
 
@@ -76,9 +72,6 @@ map<GLchar, Character> Characters;
 GLuint charVAO, charVBO;
 
 vec3 selectCord = vec3(0.0f); //coordinate of the red "select" cube 
-
-vec3 normalCubePosition = vec3(0.0f); //position of the normal rubik's cube 
-
 
 
 int main()
@@ -369,6 +362,7 @@ int main()
     //loading texture pack
      // Load Textures
 #if defined(PLATFORM_OSX)
+    //color
     GLuint redTextureID = loadTexture("Textures/red.bmp");
     GLuint yellowTextureID = loadTexture("Textures/yellow.bmp");
     GLuint greenTextureID = loadTexture("Textures/green.bmp");
@@ -377,6 +371,15 @@ int main()
     GLuint orangeTextureID = loadTexture("Textures/orange.bmp");
     GLuint skyboxTextureID = loadTexture("Textures/skybox.jpg");
     GLuint selectCubeID = loadTexture("Textures/select.png");
+
+    //shapes
+    GLuint squareID = loadTexture("Textures/square.png");
+    GLuint circleID = loadTexture("Textures/circle.png");
+    GLuint triangleID = loadTexture("Textures/triangle.png");
+    GLuint rhombusID = loadTexture("Textures/rhombus.png");
+    GLuint pentagonID = loadTexture("Textures/pentagon.png");
+    GLuint hexagonID = loadTexture("Textures/hexagon.png");
+
 #else
     GLuint redTextureID = loadTexture("../Assets/Textures/red.bmp");
     GLuint yellowTextureID = loadTexture("../Assets/Textures/yellow.bmp");
@@ -386,10 +389,46 @@ int main()
     GLuint orangeTextureID = loadTexture("../Assets/Textures/orange.bmp");
     GLuint skyboxTextureID = loadTexture("../Assets/Textures/skybox.jpg");
     GLuint selectCubeID = loadTexture("../Assets/Textures/select.png");
+
+    GLuint squareID = loadTexture("../Assets/Textures/square.png");
+    GLuint circleID = loadTexture("../Assets/Textures/circle.png");
+    GLuint rhombusID = loadTexture("../Assets/Textures/rhombus.png");
+    GLuint triangleID = loadTexture("../Assets/Textures/triangle.png");
+    GLuint pentagonID = loadTexture("../Assets/Textures/pentagon.png");
+    GLuint hexagonID = loadTexture("../Assets/Textures/hexagon.png");
+
+    // Animal rubiks cube
+    GLuint zebraCubeID = loadTexture("../Assets/Textures/zebra.png");
+    GLuint lionCubeID = loadTexture("../Assets/Textures/lion.jpg");
+    GLuint giraffeCubeID = loadTexture("../Assets/Textures/giraffe.jpg");
+    GLuint leopardCubeID = loadTexture("../Assets/Textures/leopard.jpg");
+    GLuint snakeCubeID = loadTexture("../Assets/Textures/snake.png");
+    GLuint whiteLeopardCubeID = loadTexture("../Assets/Textures/whiteLeopard.png");
+
+    // Movies rubiks cube
+    GLuint backIntoTheFutureCubeID = loadTexture("../Assets/Textures/backIntoTheFuture.jpg");
+    GLuint elfCubeID = loadTexture("../Assets/Textures/elf.jpg");
+    GLuint harryPotterCubeID = loadTexture("../Assets/Textures/harryPotter.jpg");
+    GLuint homeAloneCubeID = loadTexture("../Assets/Textures/homeAlone.jpg");
+    GLuint spaceJamCubeID = loadTexture("../Assets/Textures/spaceJam.png");
+    GLuint lordOfTheRingCubeID = loadTexture("../Assets/Textures/lordOfTheRing.jpg");
+
+    // Gaming characters rubiks cube
+    GLuint marioCubeID = loadTexture("../Assets/Textures/mario.png");
+    GLuint nessCubeID = loadTexture("../Assets/Textures/ness.png");
+    GLuint pikachuCubeID = loadTexture("../Assets/Textures/pikachu.png");
+    GLuint sonicCubeID = loadTexture("../Assets/Textures/sonic.png");
+    GLuint pacmanCubeID = loadTexture("../Assets/Textures/pacman.png");
+    GLuint zeldaCubeID = loadTexture("../Assets/Textures/zelda.png");
+
 #endif
 
     //setting up texture packs
-    vector<GLuint> texturePackNormal = { redTextureID, yellowTextureID, greenTextureID, whiteTextureID, blueTextureID, orangeTextureID };
+    vector<GLuint> texturePackColor = { redTextureID, yellowTextureID, greenTextureID, whiteTextureID, blueTextureID, orangeTextureID };
+    vector<GLuint> texturePackShape = { squareID, circleID, rhombusID, triangleID, pentagonID, hexagonID };
+    vector<GLuint> texturePackAnimals = { zebraCubeID, lionCubeID, giraffeCubeID, leopardCubeID, snakeCubeID, whiteLeopardCubeID };
+    //vector<GLuint> texturePackMovies = { backIntoTheFutureCubeID, elfCubeID, harryPotterCubeID, homeAloneCubeID, spaceJamCubeID, lordOfTheRingCubeID };
+    vector<GLuint> texturePackGaming = { marioCubeID, nessCubeID, pikachuCubeID, sonicCubeID, pacmanCubeID, zeldaCubeID };
 
     float lightAngleOuter = radians(30.0f);
     float lightAngleInner = radians(20.0f);
@@ -427,15 +466,26 @@ int main()
     int skyboxChoose = 0;
 
     string timer = "";
-    string time = "";
-    int TimeUpdate = 0;
+    double time = 0.0;
+    int TimeUpdate = 1;
     double seconds = 0.0;
     double newseconds = 0.0;
+    bool timeUp = false;
+    double pausedSeconds = 0.0;
 
-        ShadowShader.use();
+    ShadowShader.use();
     //creating all cube objects
-    Rubiks_Cube normalCube = Rubiks_Cube(normalCubePosition, texturePackNormal);
+    Rubiks_Cube normalCube = Rubiks_Cube(vec3(0.0f), texturePackColor);
     normalCube.generateCube(ShadowShader);
+
+    Rubiks_Cube shapeCube = Rubiks_Cube(vec3(7.0f, 0.0f, 0.0f), texturePackShape);
+    shapeCube.generateCube(ShadowShader);
+
+    Rubiks_Cube animalCube = Rubiks_Cube(vec3(-7.0f, 0.0f, 0.0f), texturePackAnimals);
+    animalCube.generateCube(ShadowShader);
+
+    Rubiks_Cube gameCube = Rubiks_Cube(vec3(0.0f, 0.0f, -7.0f), texturePackGaming);
+    gameCube.generateCube(ShadowShader);
 
     //setting up for button debouncing 
     int oldStateQ = GLFW_RELEASE;
@@ -456,9 +506,17 @@ int main()
     int oldStateF1 = GLFW_RELEASE;
     int oldStateF2 = GLFW_RELEASE;
 
+    int oldState1 = GLFW_RELEASE;
+    int oldState2 = GLFW_RELEASE;
+    int oldState3 = GLFW_RELEASE;
+    int oldState4 = GLFW_RELEASE;
+
+
     //for flashlight
     int lightOldState = GLFW_RELEASE; 
     bool enableLight = true;
+
+    Rubiks_Cube* selectedCube = &normalCube;
 
     // Entering Game Loop
     while (!glfwWindowShouldClose(window))
@@ -492,24 +550,52 @@ int main()
 
             //Rendering Text
 
-            if (TimeUpdate == 0) 
-            {
-                seconds = glfwGetTime();
-                timer = to_string(120.0 - seconds);
+            double realTime = glfwGetTime();
+
+        if (TimeUpdate == 0)
+        {
+            seconds = pausedSeconds + realTime;
+            time = 120.0 - seconds;
+
+            if (time > 0.0) {
+                timer = to_string(time);
             }
-            else if (TimeUpdate == 1)
-            {
-                timer = to_string(120.0 - seconds);
+            else if (time <= 0.0 && timeUp == false) {
+                seconds = 0.0;
+                timer = "0.0";
+                engine->play2D("lost.mp3", false);
+                timeUp = true;
             }
-            else if (TimeUpdate == 2) 
-            {
-                newseconds = glfwGetTime();
-                timer = to_string(120.0 - newseconds);
-            }
+        }
+        else if (TimeUpdate == 1)
+        {
+            pausedSeconds = seconds;
+            time = 120.0 - seconds;
+            timer = to_string(time);
+        }
 
 
         //modules for controlling model and world behaviour =================================================================================================================
 
+        //number key: select which cube we're acting on =======================================================================================
+
+        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS && TimeUpdate == 1) {
+            selectedCube = &normalCube;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS && TimeUpdate == 1) {
+            selectedCube = &shapeCube;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS && TimeUpdate == 1) {
+            selectedCube = &animalCube;
+		}
+
+        if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS && TimeUpdate == 1) {
+            selectedCube = &gameCube;
+		}
+
+        //manipulating cube ==================================================================================================
         //Q = rotate left
         //E = rotate right
         //Z = tilt left
@@ -517,9 +603,9 @@ int main()
         //R = rotate up
         //V = rotate down
 
-        int newStateQ = glfwGetKey(window, GLFW_KEY_Q);
+         int newStateQ = glfwGetKey(window, GLFW_KEY_Q);
         if (newStateQ == GLFW_RELEASE && oldStateQ == GLFW_PRESS) {
-            normalCube.rotate_y("CCW", selectCord.y);
+            selectedCube->rotate_y("CCW", selectCord.y);
             debugTick = true;
             engine->play2D("rotateRubiksCube.mp3", false);
         }
@@ -527,7 +613,7 @@ int main()
 
         int newStateE = glfwGetKey(window, GLFW_KEY_E);
         if (newStateE == GLFW_RELEASE && oldStateE == GLFW_PRESS) {
-            normalCube.rotate_y("CW", selectCord.y);
+            selectedCube->rotate_y("CW", selectCord.y);
             debugTick = true;
             engine->play2D("rotateRubiksCube.mp3", false);
         }
@@ -535,7 +621,7 @@ int main()
 
         int newStateZ = glfwGetKey(window, GLFW_KEY_Z);
         if (newStateZ == GLFW_RELEASE && oldStateZ == GLFW_PRESS) {
-            normalCube.rotate_z("CCW", selectCord.z);
+            selectedCube->rotate_z("CCW", selectCord.z);
             debugTick = true;
             engine->play2D("rotateRubiksCube.mp3", false);
         }
@@ -543,7 +629,7 @@ int main()
 
         int newStateC = glfwGetKey(window, GLFW_KEY_C);
         if (newStateC == GLFW_RELEASE && oldStateC == GLFW_PRESS) {
-            normalCube.rotate_z("CW", selectCord.z);
+            selectedCube->rotate_z("CW", selectCord.z);
             debugTick = true;
             engine->play2D("rotateRubiksCube.mp3", false);
         }
@@ -551,7 +637,7 @@ int main()
 
         int newStateR = glfwGetKey(window, GLFW_KEY_R);
         if (newStateR == GLFW_RELEASE && oldStateR == GLFW_PRESS) {
-            normalCube.rotate_x("CCW", selectCord.x);
+            selectedCube->rotate_x("CCW", selectCord.x);
             debugTick = true;
             engine->play2D("rotateRubiksCube.mp3", false);
         }
@@ -559,13 +645,13 @@ int main()
 
         int newStateV = glfwGetKey(window, GLFW_KEY_V);
         if (newStateV == GLFW_RELEASE && oldStateV == GLFW_PRESS) {
-            normalCube.rotate_x("CW", selectCord.x);
+            selectedCube->rotate_x("CW", selectCord.x);
             debugTick = true;
             engine->play2D("rotateRubiksCube.mp3", false);
         }
         oldStateV = newStateV;
 
-        //moving selection block: up/down/left/right/u/j
+        //moving selection block: up/down/left/right/u/j =========================================================================
 
         int newStateUp = glfwGetKey(window, GLFW_KEY_UP);
         if (newStateUp == GLFW_RELEASE && oldStateUp == GLFW_PRESS) {
@@ -578,7 +664,6 @@ int main()
                     engine->play2D("selectNewBlock.mp3", false);
                 }
             }
-
         }
         oldStateUp = newStateUp;
 
@@ -664,42 +749,52 @@ int main()
         oldStateJ = newStateJ;
 
 
-        //reset cube 
+        //F1: Reset Cube =================================================================================================
         int newStateF1 = glfwGetKey(window, GLFW_KEY_F1);
         if (newStateF1 == GLFW_RELEASE && oldStateF1 == GLFW_PRESS) {
-            normalCube.resetPosition();
+            selectedCube->resetPosition();
         }
         oldStateF1 = newStateF1;
 
-        if (debugTick == true) {
-            //normalCube.debug();
+        //F2: randomly shuffle the cube 
+        int newStateF2 = glfwGetKey(window, GLFW_KEY_F2);
+        if (newStateF2 == GLFW_RELEASE && oldStateF2 == GLFW_PRESS) {
+            selectedCube->randomizePosition(25);
+            engine->play2D("rotateRubiksCube.mp3", false);
         }
+        oldStateF2 = newStateF2;
 
-        //drawing everything ==================================================================================================
-
-        
-        //vec3 lightDirection = normalize(lightFocus - lightPos);
-        vec3 lightDirection = cameraLookAt;
- 
-        if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) // pause timer
+        //TIMER CONTROL ==========================================================================================================================
+       if (glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS) // pause timer
         {
             TimeUpdate = 0;
+            glfwSetTime(0.0);
         }
 
-        if(glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS)
+
+        if(glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) // play timer
         {
+            TimeUpdate = 1;
+            //if(winCondition() == true)
+                //engine->play2D("win.mp3", false);
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS) // reset timer
+        {
+            glfwSetTime(0.0);
+            pausedSeconds = 0.0;
+            seconds = 0.0;
             TimeUpdate = 1;
         }
 
-            /*if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
-            {
-                TimeUpdate = 2;
-            }*/
-
         //drawing everything ==================================================================================================
+
+        //lighting setup 
 
         float lightNearPlane = 0.01f;
         float lightFarPlane = 400.0f;
+        vec3 lightDirection = cameraLookAt;
+
         //frustum(-1.0f, 1.0f, -1.0f, 1.0f, lightNearPlane, lightFarPlane);
         //mat4 lightProjMatrix = perspective(50.0f, (float)DEPTH_MAP_TEXTURE_SIZE / (float)DEPTH_MAP_TEXTURE_SIZE, lightNearPlane, lightFarPlane);
         mat4 lightProjMatrix = ortho(-50.0f, 50.0f, -50.0f, 50.0f, lightNearPlane, lightFarPlane);
@@ -738,19 +833,28 @@ int main()
 
 
         glBindVertexArray(cubeVAO);
-
         ShadowShader.use();
 
         normalCube.setShader(ShadowShader);
         normalCube.drawModel();
 
+        shapeCube.setShader(ShadowShader);
+        shapeCube.drawModel();
+
+        animalCube.setShader(ShadowShader);
+        animalCube.drawModel();
+
+        gameCube.setShader(ShadowShader);
+        gameCube.drawModel();
+
         //drawing selection cube
         glBindTexture(GL_TEXTURE_2D, selectCubeID);
 
-        Cube selectCube = Cube(selectCord - vec3(1.0f) + normalCubePosition, ShadowShader);
+        Cube selectCube = Cube(selectCord - vec3(1.0f) + selectedCube->getPosition(), ShadowShader);
         selectCube.setDefaultSize(vec3(1.01f));
         selectCube.drawModel();
 
+        glBindVertexArray(cubeVAO);
         //drawing skybox
         glBindTexture(GL_TEXTURE_2D, skyboxTextureID);
         mat4 skybox = translate(mat4(1.0f), cameraPosition) * scale(mat4(1.0f), vec3(-500.0f));
@@ -789,10 +893,19 @@ int main()
 
 
         glBindVertexArray(cubeVAO);
-
         AffectedByLightingShader.use();
+
         normalCube.setShader(AffectedByLightingShader);
         normalCube.drawModel();
+ 
+        shapeCube.setShader(AffectedByLightingShader);
+        shapeCube.drawModel();
+
+        animalCube.setShader(AffectedByLightingShader);
+        animalCube.drawModel();
+
+        gameCube.setShader(AffectedByLightingShader);
+        gameCube.drawModel();
 
         //drawing selection cube
         glBindTexture(GL_TEXTURE_2D, selectCubeID);

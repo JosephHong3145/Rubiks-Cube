@@ -17,12 +17,16 @@ Rubiks_Cube::Rubiks_Cube(vec3 pos, vector<GLuint> texture) {
 	position = pos;
 }
 
+//get and set position of the cube 
+void Rubiks_Cube::setPosition(vec3 pos) { position = pos; }
+vec3 Rubiks_Cube::getPosition() { return position; }
+
 void Rubiks_Cube::generateCube(Shader S) {
     for (int x = 0; x < 3; x++) {
         for (int y = 0; y < 3; y++) {
             for (int z = 0; z < 3; z++) {
                 Cube newCube = Cube(vec3(1.0f), S);
-                newCube.setDefaultPosition(vec3(x - 1, y - 1, z - 1) + position);
+                newCube.setDefaultPosition(position);
                 newCube.setPositionTag(vec3(x, y, z));
                 newCube.setInitialPositionTag(vec3(x, y, z));
                 cubeArray.push_back(newCube);
@@ -139,6 +143,51 @@ void Rubiks_Cube::resetPosition() {
         cubeArray[i].setPositionTag(cubeArray[i].getInitialPositionTag());
     }
 
+}
+
+//shuffle the cube. Parameter is 
+void Rubiks_Cube::randomizePosition(int iteration) {
+    vec3 RNGSelectPos = vec3(1.0f);
+    int RNGrotationAxis = 0;
+    int RNGrotationDirection = 0;
+
+    string rotateDirection;
+
+    for (int i = 0; i < iteration; i++) {
+        RNGSelectPos.x = rand() % 3;
+        RNGSelectPos.y = rand() % 3;
+        RNGSelectPos.z = rand() % 3;
+
+        RNGrotationAxis = rand() % 3;
+
+        RNGrotationDirection = rand() % 2;
+
+        switch (RNGrotationDirection) {
+        case(0): rotateDirection = "CW";
+            break;
+        case(1): rotateDirection = "CCW";
+        }
+
+        switch(RNGrotationAxis) {
+        case(0): this->rotate_x(rotateDirection, RNGSelectPos.x);
+            break;
+        case(1): this->rotate_y(rotateDirection, RNGSelectPos.y);
+            break;
+        case(2): this->rotate_z(rotateDirection, RNGSelectPos.z);
+        }
+    }
+}
+
+bool Rubiks_Cube::winCondition() {
+    bool won = true;
+    for (int i = 0; i < cubeArray.size(); i++) {
+        if (cubeArray[i].getPositionTag() != cubeArray[i].getInitialPositionTag()) {
+            won = false;
+            break;
+        }
+    }
+
+    return won;
 }
 
 void Rubiks_Cube::debug() {
