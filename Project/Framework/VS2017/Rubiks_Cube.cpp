@@ -178,17 +178,19 @@ void Rubiks_Cube::randomizePosition(int iteration) {
     }
 }
 
-bool Rubiks_Cube::winCondition() {
-    bool won = true;
+void Rubiks_Cube::testforWinCondition() {
+    bool gameWon = true;
     for (int i = 0; i < cubeArray.size(); i++) {
         if (cubeArray[i].getPositionTag() != cubeArray[i].getInitialPositionTag()) {
-            won = false;
+            gameWon = false;
             break;
         }
     }
 
-    return won;
+    won = gameWon;
 }
+
+bool Rubiks_Cube::getWin() { return won; }
 
 void Rubiks_Cube::debug() {
     /*for (int i = 0; i < cubeArray.size(); i++) {
