@@ -73,7 +73,7 @@ map<GLchar, Character> Characters;
 GLuint charVAO, charVBO;
 
 vec3 selectCord = vec3(0.0f); //coordinate of the red "select" cube
-
+int gameState = 0; // 0 = idle, 1 = won, 2 = loss, 3 = ongoing
 
 int main()
 {
@@ -348,9 +348,53 @@ int main()
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(vec3), (void*)(2 * sizeof(vec3)));
     glEnableVertexAttribArray(2);
 
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(vec3)));
+    glEnableVertexAttribArray(3);
+
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBindVertexArray(0);
+
+    const Vertex triangleArray[] = {
+        Vertex(vec3(-1, -1, 0), vec3(0.6f, 0.6f, 0.6f), crossProduct(vec3(-1, -1, 0), vec3(1, -1, 0), vec3(0, 1, 0)),  vec2(0.0f, 0.0f)),
+        Vertex(vec3(1, -1, 0), vec3(0.3f, 0.3f, 0.3f), crossProduct(vec3(-1, -1, 0), vec3(1, -1, 0), vec3(0, 1, 0)),  vec2(0.0f, 1.0f)),
+        Vertex(vec3(0, 1, 0), vec3(0.1f, 0.1f, 0.1f), crossProduct(vec3(-1, -1, 0), vec3(1, -1, 0), vec3(0, 1, 0)),  vec2(1.0f, 1.0f)),
+
+        Vertex(vec3(-1, -1, 0), vec3(0.6f, 0.6f, 0.6f), -crossProduct(vec3(-1, -1, 0), vec3(1, -1, 0), vec3(0, 1, 0)),  vec2(0.0f, 0.0f)),
+        Vertex(vec3(0, 1, 0), vec3(0.3f, 0.3f, 0.3f), -crossProduct(vec3(-1, -1, 0), vec3(1, -1, 0), vec3(0, 1, 0)),  vec2(1.0f, 1.0f)),
+        Vertex(vec3(1, -1, 0), vec3(0.1f, 0.1f, 0.1f), -crossProduct(vec3(-1, -1, 0), vec3(1, -1, 0), vec3(0, 1, 0)),  vec2(1.0f, 0.0f))
+    };
+
+    //creating triangle VAO
+    GLuint triangleVAO;
+    glGenVertexArrays(1, &triangleVAO);
+    glBindVertexArray(triangleVAO);
+
+    // Upload Vertex Buffer to the GPU, keep a reference to it (vertexBufferObject)
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangleArray), triangleArray, GL_STATIC_DRAW);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // Color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)sizeof(vec3));
+    glEnableVertexAttribArray(1);
+
+    // Normal attribute
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2 * sizeof(vec3)));
+    glEnableVertexAttribArray(2);
+
+    // Texture attribute
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(vec3)));
+    glEnableVertexAttribArray(3);
+
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindVertexArray(0);
+
 
     // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
     GLuint lightSourceVAO;
@@ -380,6 +424,36 @@ int main()
     GLuint rhombusID = loadTexture("Textures/rhombus.png");
     GLuint pentagonID = loadTexture("Textures/pentagon.png");
     GLuint hexagonID = loadTexture("Textures/hexagon.png");
+
+    // Animal rubiks cube
+    GLuint zebraCubeID = loadTexture("Textures/zebra.png");
+    GLuint lionCubeID = loadTexture("Textures/lion.jpg");
+    GLuint giraffeCubeID = loadTexture("Textures/giraffe.jpg");
+    GLuint leopardCubeID = loadTexture("Textures/leopard.jpg");
+    GLuint snakeCubeID = loadTexture("Textures/snake.png");
+    GLuint whiteLeopardCubeID = loadTexture("Textures/whiteLeopard.png");
+
+    // Movies rubiks cube
+    GLuint backIntoTheFutureCubeID = loadTexture("Textures/backIntoTheFuture.jpg");
+    GLuint elfCubeID = loadTexture("Textures/elf.jpg");
+    GLuint harryPotterCubeID = loadTexture("Textures/harryPotter.jpg");
+    GLuint homeAloneCubeID = loadTexture("Textures/homeAlone.jpg");
+    GLuint spaceJamCubeID = loadTexture("Textures/spaceJam.png");
+    GLuint lordOfTheRingCubeID = loadTexture("Textures/lordOfTheRing.jpg");
+
+    // Gaming characters rubiks cube
+    GLuint marioCubeID = loadTexture("Textures/mario.png");
+    GLuint nessCubeID = loadTexture("Textures/ness.png");
+    GLuint pikachuCubeID = loadTexture("Textures/pikachu.png");
+    GLuint sonicCubeID = loadTexture("Textures/sonic.png");
+    GLuint pacmanCubeID = loadTexture("Textures/pacman.png");
+    GLuint zeldaCubeID = loadTexture("Textures/zelda.png");
+
+    // Skybox texture
+    GLuint skyboxTextureID = loadTexture("Textures/skybox.jpg");
+
+    // Selector texture
+    GLuint selectCubeID = loadTexture("../Assets/Textures/select.png");
 
 #else
     // Color rubiks cube
@@ -426,38 +500,13 @@ int main()
     GLuint triangleID = loadTexture("../Assets/Textures/triangle.png");
     GLuint pentagonID = loadTexture("../Assets/Textures/pentagon.png");
     GLuint hexagonID = loadTexture("../Assets/Textures/hexagon.png");
-
-    // Animal rubiks cube
-    GLuint zebraCubeID = loadTexture("../Assets/Textures/zebra.png");
-    GLuint lionCubeID = loadTexture("../Assets/Textures/lion.jpg");
-    GLuint giraffeCubeID = loadTexture("../Assets/Textures/giraffe.jpg");
-    GLuint leopardCubeID = loadTexture("../Assets/Textures/leopard.jpg");
-    GLuint snakeCubeID = loadTexture("../Assets/Textures/snake.png");
-    GLuint whiteLeopardCubeID = loadTexture("../Assets/Textures/whiteLeopard.png");
-
-    // Movies rubiks cube
-    GLuint backIntoTheFutureCubeID = loadTexture("../Assets/Textures/backIntoTheFuture.jpg");
-    GLuint elfCubeID = loadTexture("../Assets/Textures/elf.jpg");
-    GLuint harryPotterCubeID = loadTexture("../Assets/Textures/harryPotter.jpg");
-    GLuint homeAloneCubeID = loadTexture("../Assets/Textures/homeAlone.jpg");
-    GLuint spaceJamCubeID = loadTexture("../Assets/Textures/spaceJam.png");
-    GLuint lordOfTheRingCubeID = loadTexture("../Assets/Textures/lordOfTheRing.jpg");
-
-    // Gaming characters rubiks cube
-    GLuint marioCubeID = loadTexture("../Assets/Textures/mario.png");
-    GLuint nessCubeID = loadTexture("../Assets/Textures/ness.png");
-    GLuint pikachuCubeID = loadTexture("../Assets/Textures/pikachu.png");
-    GLuint sonicCubeID = loadTexture("../Assets/Textures/sonic.png");
-    GLuint pacmanCubeID = loadTexture("../Assets/Textures/pacman.png");
-    GLuint zeldaCubeID = loadTexture("../Assets/Textures/zelda.png");
-
 #endif
 
     //setting up texture packs
     vector<GLuint> texturePackColor = { redTextureID, yellowTextureID, greenTextureID, whiteTextureID, blueTextureID, orangeTextureID };
     vector<GLuint> texturePackShape = { squareID, circleID, rhombusID, triangleID, pentagonID, hexagonID };
     vector<GLuint> texturePackAnimals = { zebraCubeID, lionCubeID, giraffeCubeID, leopardCubeID, snakeCubeID, whiteLeopardCubeID };
-    //vector<GLuint> texturePackMovies = { backIntoTheFutureCubeID, elfCubeID, harryPotterCubeID, homeAloneCubeID, spaceJamCubeID, lordOfTheRingCubeID };
+    vector<GLuint> texturePackMovies = { backIntoTheFutureCubeID, elfCubeID, harryPotterCubeID, homeAloneCubeID, spaceJamCubeID, lordOfTheRingCubeID };
     vector<GLuint> texturePackGaming = { marioCubeID, nessCubeID, pikachuCubeID, sonicCubeID, pacmanCubeID, zeldaCubeID };
 
     float lightAngleOuter = radians(30.0f);
@@ -508,14 +557,17 @@ int main()
     Rubiks_Cube normalCube = Rubiks_Cube(vec3(0.0f), texturePackColor);
     normalCube.generateCube(ShadowShader);
 
-    Rubiks_Cube shapeCube = Rubiks_Cube(vec3(7.0f, 0.0f, 0.0f), texturePackShape);
+    Rubiks_Cube shapeCube = Rubiks_Cube(vec3(15.0f, 0.0f, 0.0f), texturePackShape);
     shapeCube.generateCube(ShadowShader);
 
-    Rubiks_Cube animalCube = Rubiks_Cube(vec3(-7.0f, 0.0f, 0.0f), texturePackAnimals);
+    Rubiks_Cube animalCube = Rubiks_Cube(vec3(-15.0f, 0.0f, 0.0f), texturePackAnimals);
     animalCube.generateCube(ShadowShader);
 
-    Rubiks_Cube gameCube = Rubiks_Cube(vec3(0.0f, 0.0f, -7.0f), texturePackGaming);
+    Rubiks_Cube gameCube = Rubiks_Cube(vec3(0.0f, 0.0f, -15.0f), texturePackGaming);
     gameCube.generateCube(ShadowShader);
+
+    Rubiks_Cube movieCube = Rubiks_Cube(vec3(0.0f, 0.0f, 15.0f), texturePackMovies);
+    movieCube.generateCube(ShadowShader);
 
     //setting up for button debouncing
     int oldStateQ = GLFW_RELEASE;
@@ -580,29 +632,30 @@ int main()
 
         //Rendering Text
         double realTime = glfwGetTime();
+        const float maxTime = 300.0f;
 
         if (TimeUpdate == 0)
         {
             seconds = pausedSeconds + realTime;
-            time = 120.0 - seconds;
+            time = maxTime - seconds;
 
             if (time > 0.0) {
                 timer = to_string(time);
             }
-            else if (time <= 0.0 && timeUp == false) {
+            else if (time <= 0.0 && timeUp == false) {//this is when you lose 
                 seconds = 0.0;
                 timer = "0.0";
                 engine->play2D("lost.mp3", false);
                 timeUp = true;
+
+                gameState = 2;
             }
         }
         else if (TimeUpdate == 1)
         {
             pausedSeconds = seconds;
-            time = 120.0 - seconds;
+            time = maxTime - seconds;
             timer = to_string(time);
-            //if(completedcube == true)
-                //engine->play2D("win.mp3", false);
         }
 
         //modules for controlling model and world behaviour =================================================================================================================
@@ -625,6 +678,10 @@ int main()
             selectedCube = &gameCube;
 		}
 
+        if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS && TimeUpdate == 1) {
+            selectedCube = &movieCube;
+		}
+
         //manipulating cube ==================================================================================================
         //Q = rotate left
         //E = rotate right
@@ -632,54 +689,56 @@ int main()
         //C = tilt right
         //R = rotate up
         //V = rotate down
+        if (gameState == 0 || gameState == 3) {
+            int newStateQ = glfwGetKey(window, GLFW_KEY_F);
+            if (newStateQ == GLFW_RELEASE && oldStateQ == GLFW_PRESS) {
+                selectedCube->rotate_y("CCW", selectCord.y);
+                debugTick = true;
+                engine->play2D("rotateRubiksCube.mp3", false);
+            }
+            oldStateQ = newStateQ;
 
-         int newStateQ = glfwGetKey(window, GLFW_KEY_Q);
-        if (newStateQ == GLFW_RELEASE && oldStateQ == GLFW_PRESS) {
-            selectedCube->rotate_y("CCW", selectCord.y);
-            debugTick = true;
-            engine->play2D("rotateRubiksCube.mp3", false);
-        }
-        oldStateQ = newStateQ;
+            int newStateE = glfwGetKey(window, GLFW_KEY_H);
+            if (newStateE == GLFW_RELEASE && oldStateE == GLFW_PRESS) {
+                selectedCube->rotate_y("CW", selectCord.y);
+                debugTick = true;
+                engine->play2D("rotateRubiksCube.mp3", false);
+            }
+            oldStateE = newStateE;
 
-        int newStateE = glfwGetKey(window, GLFW_KEY_E);
-        if (newStateE == GLFW_RELEASE && oldStateE == GLFW_PRESS) {
-            normalCube.rotate_y("CW", selectCord.y);
-            debugTick = true;
-            engine->play2D("rotateRubiksCube.mp3", false);
-        }
-        oldStateE = newStateE;
+            int newStateZ = glfwGetKey(window, GLFW_KEY_T);
+            if (newStateZ == GLFW_RELEASE && oldStateZ == GLFW_PRESS) {
+                selectedCube->rotate_z("CCW", selectCord.z);
+                debugTick = true;
+                engine->play2D("rotateRubiksCube.mp3", false);
+            }
+            oldStateZ = newStateZ;
 
-        int newStateZ = glfwGetKey(window, GLFW_KEY_Z);
-        if (newStateZ == GLFW_RELEASE && oldStateZ == GLFW_PRESS) {
-            normalCube.rotate_z("CCW", selectCord.z);
-            debugTick = true;
-            engine->play2D("rotateRubiksCube.mp3", false);
-        }
-        oldStateZ = newStateZ;
+            int newStateC = glfwGetKey(window, GLFW_KEY_G);
+            if (newStateC == GLFW_RELEASE && oldStateC == GLFW_PRESS) {
+                selectedCube->rotate_z("CW", selectCord.z);
+                debugTick = true;
+                engine->play2D("rotateRubiksCube.mp3", false);
+            }
+            oldStateC = newStateC;
 
-        int newStateC = glfwGetKey(window, GLFW_KEY_C);
-        if (newStateC == GLFW_RELEASE && oldStateC == GLFW_PRESS) {
-            normalCube.rotate_z("CW", selectCord.z);
-            debugTick = true;
-            engine->play2D("rotateRubiksCube.mp3", false);
-        }
-        oldStateC = newStateC;
+            int newStateR = glfwGetKey(window, GLFW_KEY_R);
+            if (newStateR == GLFW_RELEASE && oldStateR == GLFW_PRESS) {
+                selectedCube->rotate_x("CCW", selectCord.x);
+                debugTick = true;
+                engine->play2D("rotateRubiksCube.mp3", false);
+            }
+            oldStateR = newStateR;
 
-        int newStateR = glfwGetKey(window, GLFW_KEY_R);
-        if (newStateR == GLFW_RELEASE && oldStateR == GLFW_PRESS) {
-            normalCube.rotate_x("CCW", selectCord.x);
-            debugTick = true;
-            engine->play2D("rotateRubiksCube.mp3", false);
+            int newStateV = glfwGetKey(window, GLFW_KEY_Y);
+            if (newStateV == GLFW_RELEASE && oldStateV == GLFW_PRESS) {
+                selectedCube->rotate_x("CW", selectCord.x);
+                debugTick = true;
+                engine->play2D("rotateRubiksCube.mp3", false);
+            }
+            oldStateV = newStateV;
         }
-        oldStateR = newStateR;
-
-        int newStateV = glfwGetKey(window, GLFW_KEY_V);
-        if (newStateV == GLFW_RELEASE && oldStateV == GLFW_PRESS) {
-            selectedCube->rotate_x("CW", selectCord.x);
-            debugTick = true;
-            engine->play2D("rotateRubiksCube.mp3", false);
-        }
-        oldStateV = newStateV;
+        
 
         //moving selection block: up/down/left/right/u/j =========================================================================
 
@@ -783,6 +842,7 @@ int main()
         int newStateF1 = glfwGetKey(window, GLFW_KEY_F1);
         if (newStateF1 == GLFW_RELEASE && oldStateF1 == GLFW_PRESS) {
             selectedCube->resetPosition();
+            gameState = 0;
         }
         oldStateF1 = newStateF1;
 
@@ -791,6 +851,7 @@ int main()
         if (newStateF2 == GLFW_RELEASE && oldStateF2 == GLFW_PRESS) {
             selectedCube->randomizePosition(25);
             engine->play2D("rotateRubiksCube.mp3", false);
+            gameState = 3;
         }
         oldStateF2 = newStateF2;
 
@@ -801,14 +862,6 @@ int main()
             glfwSetTime(0.0);
         }
 
-
-        if(glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) // play timer
-        {
-            TimeUpdate = 1;
-            //if(winCondition() == true)
-                //engine->play2D("win.mp3", false);
-        }
-
         if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS) // reset timer
         {
             glfwSetTime(0.0);
@@ -817,6 +870,19 @@ int main()
             TimeUpdate = 1;
         }
 
+        //testing for game state 
+        if (gameState == 3) {//if the game is ongoing
+            selectedCube->testforWinCondition();
+
+            if (selectedCube->getWin() == true) {
+                gameState = 1;//set game state to won
+                TimeUpdate = 1;//stop timer
+                engine->play2D("win.mp3", false);
+
+            }
+        }
+
+        
 
         //vec3 lightDirection = normalize(lightFocus - lightPos);
 
@@ -859,8 +925,25 @@ int main()
         glClear(GL_DEPTH_BUFFER_BIT);
         // Bind geometry
 
-        RenderText(TextShader, "Timer:", 25.0f, 25.0f, 1.0f, vec3(0.5, 0.8f, 0.2f));
-        RenderText(TextShader, timer, 200.0f, 25.0f, 1.0f, vec3(0.5, 0.8f, 0.2f));
+        if (gameState != 0) {
+            RenderText(TextShader, "Timer:", 25.0f, 25.0f, 1.0f, vec3(0.5, 0.8f, 0.2f));
+            RenderText(TextShader, timer, 200.0f, 25.0f, 1.0f, vec3(0.5, 0.8f, 0.2f));
+        }
+
+        RenderText(TextShader, "Use arrow key and U/J to move the cube of selection, press F/H/T/G/R/Y to rotate it", 25.0, 75.0, 0.40f, vec3(0.5, 0.8f, 0.2f));
+
+        if (gameState == 2) {
+            RenderText(TextShader, "You lost! Press F1 to reset and F2 to start a new game. ", 35.0f, 768 / 2, 0.65f, vec3(0.5, 0.8f, 0.2f));
+        }
+        else if (gameState == 1) {
+            RenderText(TextShader, "You won! Press F1 to reset and F2 to start a new game. ", 25.0f, 768 / 2, 0.65f, vec3(0.5, 0.8f, 0.2f));
+        }
+
+        if (gameState == 0) {
+            RenderText(TextShader, "Use number key 1-5 to select a Cube.", 25.0, 130.0, 0.5f, vec3(0.5, 0.8f, 0.2f));
+            RenderText(TextShader, "Press F2 to start a game on your selected cube. ", 25.0, 100.0, 0.5f, vec3(0.5, 0.8f, 0.2f));
+        }
+
 
 
         glBindVertexArray(cubeVAO);
@@ -878,10 +961,12 @@ int main()
         gameCube.setShader(ShadowShader);
         gameCube.drawModel();
 
+        movieCube.setShader(ShadowShader);
+        movieCube.drawModel();
+
         //drawing selection cube
         glBindTexture(GL_TEXTURE_2D, selectCubeID);
-
-        Cube selectCube = Cube(selectCord - vec3(1.0f) + selectedCube->getPosition(), ShadowShader);
+        Cube selectCube = Cube(selectCord + selectedCube->getPosition(), ShadowShader);
         selectCube.setDefaultSize(vec3(1.01f));
         selectCube.drawModel();
 
@@ -892,7 +977,16 @@ int main()
         ShadowShader.setMat4("worldMatrix", skybox);
         glDrawArrays(GL_TRIANGLES, 0, 36); // 36 vertices, starting at index 0
 
+        //drawing rubiks cube selector triangle 
         glBindTexture(GL_TEXTURE_2D, 0);
+        glBindVertexArray(triangleVAO);
+        NotAffectedByLightingShader.use();
+
+        mat4 cubeMarker = translate(mat4(1.0f), selectedCube->getPosition() + vec3(1.0f, 5.0f, 1.0f)) * rotate(mat4(1.0f), (float)(glfwGetTime()), vec3(0.0f, 1.0f, 0.0f)) * rotate(mat4(1.0f), radians(180.0f), vec3(1.0f, 0.0f, 0.0f)) * scale(mat4(1.0f), vec3(1.0f));
+        NotAffectedByLightingShader.setMat4("worldMatrix", cubeMarker);
+        NotAffectedByLightingShader.setInt("currentAxis", 1);
+
+        glDrawArrays(GL_TRIANGLES, 0, 6); // 36 vertices, starting at index 0
 
         glBindVertexArray(0);
 
@@ -919,8 +1013,25 @@ int main()
         // Activate any texture unit you use for your models
         // Bind geometry
 
-        RenderText(TextShader, "Timer:", 25.0f, 25.0f, 1.0f, vec3(0.5, 0.8f, 0.2f));
-        RenderText(TextShader, timer, 200.0f, 25.0f, 1.0f, vec3(0.5, 0.8f, 0.2f));
+        if (gameState != 0) {
+            RenderText(TextShader, "Timer:", 25.0f, 25.0f, 1.0f, vec3(0.5, 0.8f, 0.2f));
+            RenderText(TextShader, timer, 200.0f, 25.0f, 1.0f, vec3(0.5, 0.8f, 0.2f));
+        }
+
+        RenderText(TextShader, "Use arrow key and U/J to move the cube of selection, press F/H/T/G/R/Y to rotate it", 25.0, 75.0, 0.40f, vec3(0.5, 0.8f, 0.2f));
+
+        if (gameState == 2) {
+            RenderText(TextShader, "You lost! Press F1 to reset and F2 to start a new game. ", 35.0f, 768 / 2, 0.65f, vec3(0.5, 0.8f, 0.2f));
+        }
+        else if (gameState == 1) {
+            RenderText(TextShader, "You won! Press F1 to reset and F2 to start a new game. ", 25.0f, 768 / 2, 0.65f, vec3(0.5, 0.8f, 0.2f));
+        }
+
+        if (gameState == 0) {
+            RenderText(TextShader, "Use number key 1-5 to select a Cube.", 25.0, 130.0, 0.5f, vec3(0.5, 0.8f, 0.2f));
+            RenderText(TextShader, "Press F2 to start a game on your selected cube. ", 25.0, 100.0, 0.5f, vec3(0.5, 0.8f, 0.2f));
+        }
+
 
 
         glBindVertexArray(cubeVAO);
@@ -938,6 +1049,9 @@ int main()
         gameCube.setShader(AffectedByLightingShader);
         gameCube.drawModel();
 
+        movieCube.setShader(AffectedByLightingShader);
+        movieCube.drawModel();
+
         //drawing selection cube
         glBindTexture(GL_TEXTURE_2D, selectCubeID);
         selectCube.setCurrentShader(AffectedByLightingShader);
@@ -949,11 +1063,17 @@ int main()
         AffectedByLightingShader.setMat4("worldMatrix", skybox);
         glDrawArrays(GL_TRIANGLES, 0, 36); // 36 vertices, starting at index 0
 
+        //drawing cube selector
+        glBindTexture(GL_TEXTURE_2D, 0);
 
-        //draw all bottom face
+        glBindVertexArray(triangleVAO);
+        NotAffectedByLightingShader.use();
+        NotAffectedByLightingShader.setMat4("worldMatrix", cubeMarker);
+        NotAffectedByLightingShader.setInt("currentAxis", 1);
+
+        glDrawArrays(GL_TRIANGLES, 0, 6); // 36 vertices, starting at index 0
 
         glBindVertexArray(0);
-        glBindTexture(GL_TEXTURE_2D, 0);
 
         // End Frame
         glfwSwapBuffers(window);
@@ -1070,7 +1190,7 @@ int main()
 
         lightPos = cameraPosition;
 
-
+       
     }
 
     // Shutdown GLFW

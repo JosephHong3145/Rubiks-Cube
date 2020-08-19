@@ -13,6 +13,7 @@ private:
 	vec3 position = vec3(0.0f);
 	vector<GLuint> texturePack;
 	vec3 rotateFactor = vec3(0.0f);
+	bool won = false;
 
 public:
 	Rubiks_Cube();
@@ -34,7 +35,8 @@ public:
 	void resetPosition();
 	void randomizePosition(int iteration);
 
-	bool winCondition();
+	void testforWinCondition();
+	bool getWin();
 
 	void debug();
 };

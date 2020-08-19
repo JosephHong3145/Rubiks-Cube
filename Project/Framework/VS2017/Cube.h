@@ -27,8 +27,8 @@ private:
 
 	Shader currentShader;
 
-	vec3 positionTag; //specifically for rubik's cube 
-	vec3 initialPositionTag; //for drawing 
+	vec3 positionTag = vec3(0.0f); //specifically for rubik's cube 
+	vec3 initialPositionTag = vec3(0.0f); //for drawing 
 
 
 public: 
