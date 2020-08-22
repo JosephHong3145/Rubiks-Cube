@@ -1,4 +1,9 @@
-Product of Ru Hong, 40068183
+HOW TO PLAY: 
+Use UP/DOWN/LEFT/RIGHT/U/J to move the selector cube on the Rubik's Cube to indicate which position the player is selecting. 
+Use T/G/F/H/Y/V to rotate the group of cubes along the X/Y/Z axis respectively. 
+Press 1-5 on number key to select a cube you would like to play on. 
+Press F2 to start a game on the selected cube. The cube will be shuffled and the timer will start ticking 
+Press F1 to stop the game and return to selecting a cube 
 
 project file path: ../Framework/VS2017/Labs.vcxproj
 
@@ -14,40 +19,19 @@ camera control =======================
 mouse: FPS camera (pan and tilt)
 mouse while holding left click: zooming in and out 
 
-switching camera ======================
-F1: toggle to camera 1 (front camera)
-F2: toggle to camera 2 (back camera)
-F3 and F5: switch to bullet time cam and rotate left/right with it 
-F6: toggle to camera 3 (light camera)
-HOME: switch back to freecam
+Cube selection ==================
+Press 1-5 on number keys to select to cube you would like to play on. 
+NOTE: CUBE SELECTION IS DISABLED WHILE THE GAME IS ONGOING 
 
-NOTE: CAMERA MOVEMENT IS DISABLED WHILE IN A SPECIFIC CAMERA
-
-model manipulation =====================
-PRESS NUMBER KEY 1 TO MANIPULATE ALL CHARACTERS AT ONCE,
-PRESS NUMBER KEY 2 - 5 TO MANIPULATE EACH LETTER INDIVIDUALLY 
-
-TFGH: Move model in world 
-T/L/P: change model to triangle / line / point
-Q/E Z/X C/V: change model orientation in x/y/z axis respectively
-R: reset model orientation 
-U/J: Increase/decrease model scale 
-N: reset model scale to original 
-B: reset model position to original 
-
-world manipulation =====================
-up/down/left/right: change world orientation
-Enter: reset world orientation to original 
+Gameplay ============================
+F2: start game
+F1: stop game (return to cube selection) 
+UP/DOWN/LEFT/RIGHT/U/J: move the position of the selector cube 
+T/G: rotate selected cubes along y axis 
+F/H: rotate selected cubes along x axis 
+Y/V: rotate selected cubes along z axis 
 
 Lighting Control ===========================
-Tab: toggle light on/off (for both spin-cam light and static spotlight)
+Tab: toggle flashlighting on/off
 
-Skybox Control ===========================
-LBRACKET: cube skybox
-RBRACKET: sphere skybox 
 
-Changing rubiks cube texture =====================
-1: colors
-2: animals
-3: movies
-4: Gaming characters
